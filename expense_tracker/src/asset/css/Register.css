@@ -1,0 +1,9 @@
+.mainContainer{
+    background-image: linear-gradient(lightgray,white);
+    display: flex;
+    align-content: center;
+    align-items: center;
+    justify-content:center;
+    justify-items: center;
+    height: 100dvh;
+    }
