@@ -2,22 +2,22 @@ const ExpenseModel = require('../models/Expenses');
 const UserModel = require('../models/User');
 const bcrypt = require('bcrypt');
 
-const find = async (req, res) => {
+const find = async(req, res) => {
     try {
-        const email = req.query.email;
-        const data = await ExpenseModel.find({ email: email })
-        console.log("data", data);
-        const count = data.length;
-        console.log("data", count);
+    const email = req.query.email;
+    const data = await ExpenseModel.find({email:email})
+    console.log("data",data);
+    const count = data.length;
+    console.log("data",count);
 
-        res.status(200).json({
-            expenses: data,
-            count: count,
-            success: true
-        });
+    res.status(200).json({
+        expenses:data,
+        count:count,
+        success: true
+    });
     }
-    catch (err) {
-        console.log("Add1 ", err);
+    catch(err) {
+        console.log("Add1 ",err);
         res.status(500)
             .json({
                 message: "Internal Server Error",
@@ -25,24 +25,25 @@ const find = async (req, res) => {
             })
 
     }
+   
 }
 
-const insert = async (req, res) => {
+const insert = async(req, res) => {
     try {
-        const { title, amount, type, date, email } = req.body;
-        console.log("Add ", title, amount, type, date, email);
-        const expensemodel = new ExpenseModel({ title, amount, type, date, email });
+        const { title,amount,type,date,email } = req.body;
+       console.log("Add ",title,amount,type,date,email);
+        const expenseModel = new ExpenseModel({ title,amount,type,date,email });
+       
 
-
-        await expensemodel.save(); // this will save the data in the mongodb and here await will hold the process until the saving is done and then allow to move to next part
-        res.status(201) //201: data created
+        await expenseModel.save();
+        res.status(201)
             .json({
                 message: "Expense Saved successfully",
                 success: true
             })
     }
-    catch (err) {
-        console.log("Add1 ", err);
+    catch(err) {
+        console.log("Add1 ",err);
         res.status(500)
             .json({
                 message: "Internal Server Error",
@@ -51,12 +52,40 @@ const insert = async (req, res) => {
 
     }
 }
-
-const update = async (req, res) => {
-    try {
-        const { title, amount, type, date, email } = req.body;
+const del = async(req, res) => {
+    try{
         const id = req.query.id;
-        await ExpenseModel.findByIdAndUpdate(id, { title: title, amount: amount, type: type, date: date }).then(() => {
+        console.log("ID ",id);
+        ExpenseModel.findByIdAndDelete(id).then(()=>{
+            res.status(200).json({
+                message:"Record Deleted",
+                success:true
+            })
+        }).catch(()=>{
+            res.status(500)
+            .json({
+                message: "Internal Server Error",
+                success: false
+            })
+        })
+    }
+    catch(err) {
+        console.log("Add1 ",err);
+        res.status(500)
+            .json({
+                message: "Internal Server Error",
+                success: false
+            })
+
+    }
+    
+}
+
+const modify = async(req, res) => {
+    try {
+        const { title,amount,type,date,email } = req.body;
+        const id = req.query.id;
+        await ExpenseModel.findByIdAndUpdate(id,{ title:title,amount:amount,type:type,date:date }).then(() => {
             console.log('Expense Updated')
             res.status(200).json({
                 message: "Your Expense has been updated",
@@ -82,40 +111,13 @@ const update = async (req, res) => {
             })
 
     }
+   
 }
 
-const del = async (req, res) => {
-    try {
-        const id = req.query.id;
-        console.log("ID ", id);
-        ExpenseModel.findByIdAndDelete(id).then(() => {
-            res.status(200).json({
-                message: "Record Deleted",
-                success: true
-            })
-        }).catch(() => {
-            res.status(500)
-                .json({
-                    message: "Internal Server Error",
-                    success: false
-                })
-        })
-    }
-    catch (err) {
-        console.log("Add1 ", err);
-        res.status(500)
-            .json({
-                message: "Internal Server Error",
-                success: false
-            })
-
-    }
-}
-
-const reset = async (req, res) => {
+const reset = async(req, res) => {
     console.log("User1 ");
     try {
-        const { oldpassword, password, email } = req.body;
+        const { oldpassword,password,email } = req.body;
         const pass = await bcrypt.hash(password, 10);
 
         const user = await UserModel.findOne({ email });
@@ -158,9 +160,10 @@ const reset = async (req, res) => {
             })
 
     }
-
+  
 }
 
 module.exports = {
-    find, insert, update, del, reset
+    find, insert, del, modify, reset
+
 }

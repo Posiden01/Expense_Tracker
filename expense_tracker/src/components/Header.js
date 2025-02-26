@@ -4,6 +4,7 @@ import arrow from '../asset/img/downarrow.png'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 function Header() {
+  const username = localStorage.getItem("name");
   const location = useLocation();
    const [inputs, setInputs] = useState({})
        const navigate = useNavigate();
@@ -13,6 +14,7 @@ function Header() {
               setInputs(values => ({ ...values, [name]: value }))
           }
   const doLogout =()=>{
+    localStorage.clear();
     navigate('/');
   }
   const openModal = () => {
@@ -94,7 +96,7 @@ const closeModal = () => {
       {
         location.pathname === '/dashboard' ?
           <div style={{ width: '10%', display: 'flex', alignItems: 'center' }}>
-            <p>User Name</p>
+            <p>{username}</p>
             <div className="dropdown">
               <img style={{ width: '10px', height: '10px', marginLeft: '10px' }} src={arrow} />
               <div className="dropdown-content">

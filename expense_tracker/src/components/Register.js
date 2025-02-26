@@ -1,19 +1,61 @@
 import React, { useEffect, useState } from 'react'
 import '../asset/css/Register.css'
 import { Link, useNavigate } from 'react-router-dom'
+import api from '../api/api.json';
 function Register() {
-     const [inputs, setInputs] = useState({})
-     const navigate = useNavigate();
-        const handleChange = (event) => {
-            const name = event.target.name;
-            const value = event.target.value;
-            setInputs(values => ({ ...values, [name]: value }))
-        }
-        const doRegister = (event) => {
-            event.preventDefault();
+    const [inputs, setInputs] = useState({})
+    const [showerror, setShowError] = useState(false)
+    const [error, setError] = useState("")
+    const navigate = useNavigate();
+    const handleChange = (event) => {
+        const name = event.target.name;
+        const value = event.target.value;
+        setInputs(values => ({ ...values, [name]: value }))
+    }
+    const doRegister = async (event) => {
+        event.preventDefault();
+        if (inputs.pass == inputs.cnfpass) {
             console.log("Clicked", inputs);
-            navigate("/dashboard");
+            var paramsjson = {
+                name: inputs.name,
+                email: inputs.email,
+                password: inputs.pass
+            }
+            var params = JSON.stringify(paramsjson);
+            try{
+                const res = await fetch(api.baseurl + "auth/signup",
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: params
+    
+                    }
+                )
+                const data = await res.json();
+                if (data.success == true) {
+                    setError("Account Created Successfully. Please Login")
+                    setInputs({})
+                    setShowError(true);
+                }
+                else {
+                    setError("User already exist or network issue")
+                    setShowError(true);
+                }
+
+            }
+            catch (error) {
+                console.log("Error ", error);
+                setShowError(true);
+                setError("Failed to connect with server");
+            }
         }
+        else{
+            setError("Password and confirm password do not match")
+            setShowError(true);
+        }
+    }
     return (
         <div className='mainContainer'>
             <div className='formcard'>
@@ -77,6 +119,12 @@ function Register() {
 
                         />
                     </div>
+                    {
+                        showerror ?
+                            <div>
+                                <span style={{ color: 'red', alignSelf: 'center' }}>{error}</span>
+                            </div> : null
+                    }
                     <div>
                         <button>Submit</button>
                     </div>

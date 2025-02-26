@@ -1,9 +1,11 @@
-const bcrypt = require('bcrypt'); //for password encryption
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/User');
-const nodemailer = require('nodemailer');
+var nodemailer = require('nodemailer');
 
-const forget = async (req, res) => { //req and res should be in order
+
+
+const forget = async (req, res) => {
     try {
         const { password, email } = req.body;
         const pass = await bcrypt.hash(password, 10);
@@ -35,48 +37,47 @@ const forget = async (req, res) => { //req and res should be in order
     }
 }
 
-const sendEmail = async (req, res) => { //req and res should be in order
+const sendEmail = async (req, res) => {
     try {
         const { email } = req.body;
-         const user = await UserModel.findOne({ email });
-         if (!user) {
-             return res.status(409)
-                 .json({
-                     message: "User Not exist",
-                     success: false
-                 })
-         }
+        const user = await UserModel.findOne({ email });
+        if (!user) {
+            return res.status(404)
+                .json({
+                    message: 'User does not exist.Please Signup',
+                    success: false
+                });
+        }
+
 
         var transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'rocksposiden@gmail.com',
-                pass: process.env.PASS
+                user: 'mittalabhyudaya2209@gmail.com',
+                pass: process.env.Pass
             }
         });
-        var otp = Math.floor(100000 + Math.random()*900000);
-        var msg = "OTP to reset your password is"+otp.toString() ;
-        console.log("Email", msg, email);
+        var otp = Math.floor(100000 + Math.random() * 900000);
+        var msg = "OTP to reset your password is " + otp.toString();
+        console.log("Email ", msg, email);
 
         var mailOptions = {
-            from: 'rocksposiden@gmail.com',
+            from: 'mittalabhyudaya2209@gmail.com',
             to: email,
-            subject: 'Password reset code',
+            subject: 'Password Reset Code',
             text: msg
         };
 
         transporter.sendMail(mailOptions, function (error, info) {
             if (error) {
-                console.log(error);
-                res.status (500)
-                    .json ({
-                        message: "Internal server error",
-                        success: false
-                    })
+                res.status(500).json({
+                    message: "Internal Server Error",
+                    success: false
+                })
             } else {
                 console.log('Email sent: ' + info.response);
-                res.status(200) .json({
-                    message: "Email sent",
+                res.status(200).json({
+                    message: "Email Sent",
                     otp: otp,
                     success: true
                 })
@@ -86,88 +87,91 @@ const sendEmail = async (req, res) => { //req and res should be in order
     catch {
         res.status(500)
             .json({
-                message: "Internal server error",
+                message: "Internal Server Error",
                 success: false
             })
+
     }
 }
 
-const signup = async (req, res) => { //remember req comes first and then comes res
+
+const signup = async (req, res) => {
     try {
         const { name, email, password } = req.body;
         const user = await UserModel.findOne({ email });
         if (user) {
             return res.status(409)
                 .json({
-                    message: "User already exist",
+                    message: 'User already exist',
                     success: false
-                })
+                });
         }
-
         const userModel = new UserModel({ name, email, password });
-        userModel.password = await bcrypt.hash(password, 10);  // password encyption <-- .hash wil do this , here 10 will be the encyption level
+        userModel.password = await bcrypt.hash(password, 10);
 
-        console.log('Sign up data', userModel);
-        await userModel.save(); // this will save the data in the mongodb and here await will hold the process until the saving is done and then allow to move to next part
-        res.status(201) //201: data created
+        await userModel.save();
+        res.status(201)
             .json({
-                message: "Signup successuflly",
+                message: "Signup successfully",
                 success: true
             })
     }
     catch {
         res.status(500)
             .json({
-                message: "Internal server error",
+                message: "Internal Server Error",
                 success: false
             })
+
     }
 }
-
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log("Check ",email,password);
         const user = await UserModel.findOne({ email });
-        console.log("User", user);
+        console.log("User ", user);
         if (!user) {
             return res.status(404)
                 .json({
-                    message: "User not found! Please sign up",
+                    message: 'User does not exist.Please Signup',
                     success: false
-                })
+                });
         }
 
-        const pass = await bcrypt.compare(password, user.password); //compare thes typed password(password) and the stored password(user.password) and gives the result in true or false
-        console.log("Password", pass);
-        if (!pass) {
+
+        const pass = await bcrypt.compare(password, user.password);
+        console.log("psw ", pass);
+        if (pass == false) {
             return res.status(403)
                 .json({
-                    message: "Invalid password",
+                    message: 'Invalid credentials',
                     success: false
-                })
-        }
+                });
 
-        const token = jwt.sign({ email: email, name: user.name }, process.env.JWT_KEY, { expiresIn: "24h" })
+        }
+        const token = jwt.sign({ email: email, name: user.name }, process.env.JWT_KEY, { expiresIn: '24h' })
 
         res.status(200)
             .json({
-                message: "login successuflly",
+                message: "Login successful",
                 success: true,
                 name: user.name,
-                email: email,
+                email: user.email,
                 token: token
             })
     }
     catch {
         res.status(500)
             .json({
-                message: "Internal server error",
+                message: "Internal Server Error",
                 success: false
             })
+
     }
 }
 
 module.exports = {
     signup, login, forget, sendEmail
-}
 
+}

@@ -10,7 +10,7 @@ const checkToken = (req, res, next) => {
     }
     try {
         const verify = jwt.verify(token, process.env.JWT_KEY);
-        console.log("JWT ", token, verify);
+        console.log("JWT ",token,verify);
         next();
     } catch (err) {
         console.log(err);
